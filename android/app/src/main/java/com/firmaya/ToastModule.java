@@ -1,5 +1,6 @@
 package com.firmaya;
 
+import android.net.Uri;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,11 @@ import com.facebook.react.uimanager.PixelUtil;
 import com.gse.signature.Signature;
 import com.gse.signature.dto.ImageSign;
 import com.gse.signature.dto.SignatureResult;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class ToastModule extends ReactContextBaseJavaModule {
 
@@ -65,43 +71,52 @@ public class ToastModule extends ReactContextBaseJavaModule {
             String dataToSign = "hello world";
             SignatureResult result = signature.Cades(dataToSign.getBytes(), "1194543041105", "SA45E0FG31", "gse", "123456789");
 
-            promise.resolve(" - "+result.isSuccess());
+            promise.resolve(" - "+result);
         } catch (IllegalViewOperationException e) {
             promise.reject(E_LAYOUT_ERROR, e);
         }
     }
 
     @ReactMethod
-    public void signPades (
-            byte[] stampBytes,
-            byte[] pdfBytes,
-            String user,
-            String password,
-            Promise promise) {
+    public void signPades (String pdfUri, String user, String password,
+                           Boolean isLtv, String razon, String ubicacion, Boolean isStamp,
+                           Boolean isFirmaVisible, String stampUri, String usuario, String clave,
+                           Promise promise) {
         try {
+            Uri pdf = Uri.parse(pdfUri);
+            Uri image = Uri.parse(stampUri);
 
-            String ubicacion = "Tunja";
-            String razon = "Tunja";
-            String passStamp = "234";
-            String userStamp = "234";
-            Boolean isLtv=false;
-            Boolean isStamp=false;
-            Boolean isFirmaVisible=false;
+            InputStream pdfStream =   getReactApplicationContext().getContentResolver().openInputStream(pdf);
+            byte[] inputPdf = getBytes(pdfStream);
+
+            InputStream imageStream =   getReactApplicationContext().getContentResolver().openInputStream(pdf);
+            byte[] inputImage = getBytes(imageStream);
+
+            //new File(pdf.getPath());
 
             Signature signature = new Signature();
-            ImageSign imageSign = new ImageSign(100, 100, 100, 100, stampBytes, 1);
-            SignatureResult result = signature.Pades(pdfBytes, user, password, "gse", "123456789",
-                    isLtv, isStamp, userStamp,passStamp , "https://tsa.gse.com.co",isFirmaVisible, imageSign, razon,
+            ImageSign imageSign = new ImageSign(100, 100, 100, 100, inputImage, 1);
+            SignatureResult result = signature.Pades(inputPdf, user, password, usuario, clave,
+                    isLtv, isStamp, usuario,clave , "https://tsa.gse.com.co",isFirmaVisible, imageSign, razon,
                     ubicacion);
 
-            WritableMap map = Arguments.createMap();
-
-            map.putString("response","Bienvenido Sr "+user+",  contraseña "+password );
-
+            //promise.resolve(result);
+            String res = "uri1 "+inputPdf+" -- uri2 "+inputImage;
             promise.resolve(result);
-        } catch (IllegalViewOperationException e) {
+        } catch (Exception e) {
             promise.reject(E_LAYOUT_ERROR, e);
         }
+    }
+    public byte[] getBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+
+        int len = 0;
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteBuffer.write(buffer, 0, len);
+        }
+        return byteBuffer.toByteArray();
     }
 
 }

@@ -10,7 +10,6 @@ import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, TouchableOpacity, Keyboard, TextInput, Button, Text, View } from 'react-native';
 
 import { NativeModules } from 'react-native';
-//import PDFView from './src/PDFView';
 import DocumentPicker from 'react-native-document-picker';
 import ImagePicker from 'react-native-image-picker';
 const { ToastModule } = NativeModules;
@@ -22,13 +21,13 @@ const App: () => React$Node = () => {
     //ToastModule.showToast(response);
   }
 
-  async function signCades() {
-    const response = await ToastModule.signCades(email, password);
-    console.log('SignCade -> ' + response);
-  }
+  const [email, onChangeEmail] = useState('1194543041105');
+  const [password, onChangePassword] = useState('SA45E0FG31');
+  const [usuario, onChangeUsuario] = useState('9002042728');
+  const [clave, onChangeClave] = useState('GaUZl13SLc/kB88gLYRUwhuRPsd1rNNyy8SY9O8E4URpopw54ZUL68U/2fsq+boYBSJ0TZX9K8wduJN+bXuRYWRlLUXpI5LdCL2/8oyshmc=');
 
-  const [email, onChangeEmail] = useState('');
-  const [password, onChangePassword] = useState('');
+  const [razon, onChangeRazon] = useState('Razon');
+  const [ubicacion, onChangeUbicacion] = useState('Bogotà');
 
   const [isLtv, setIsLtv] = useState(false);
   const [isStamp, setIsStamp] = useState(false);
@@ -37,54 +36,56 @@ const App: () => React$Node = () => {
   const toggleSwitchStamp = () => setIsStamp(previousState => !previousState);
   const toggleSwitchFirmaVisible = () => setIsFirmaVisible(previousState => !previousState);
 
-  const [razon, onChangeRazon] = useState('');
-  const [ubicacion, onChangeUbicacion] = useState('');
 
 
   const [pdfToSign, setPdfToSign] = useState('');
-  const [imageToStamp, setImageToSign] = useState('');
+  const [imageToStamp, setImageToStamp] = useState('');
 
 
-  const handleChoosePdfToSign = () => {
-    const options = {
-      noData: true,
-    }
-    DocumentPicker.pick(options, response => {
-      if (response.uri) {
-        setPdfToSign(response);
-        console.log('PDF ')
-        console.log(response)
-      }
-    })
+  const handleChoosePdfToSign = async () => {
+    const res = await DocumentPicker.pick({
+      type: [DocumentPicker.types.pdf],
+    });
+    setPdfToSign(res.uri);
+    console.log('PDF ')
+    console.log(res)
   }
-
-  const handleChooseImageToStamp = () => {
+  const handleChooseImageToStamp = async () => {
     const options = {
-      noData: true,
-    }
+      quality: 0.75,
+      maxWidth: 300,
+      maxHeight: 300,
+      storageOptions: {
+        skipBackup: true
+      }
+    };
     ImagePicker.showImagePicker(options, (response) => {
-      console.log('Response = ', response);
-
       if (response.didCancel) {
-        console.log('User cancelled image picker');
+        console.log('User cancelled photo picker');
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error);
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        const source = { uri: response.uri };
+        let source;
+        // You can display the image using either:
+        source = { uri: 'data:image/jpeg;base64,' + response.data, isStatic: true };
 
-        // You can also display the image using data:
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+        const temp = response.data;
 
-        setImageToSign(source)
-        console.log('imagen ')
-        console.log(source)
+        //Or:
+        if (Platform.OS === 'android') {
+          source = { uri: response.uri, isStatic: true };
+        } else {
+          source = { uri: response.uri.replace('file://', ''), isStatic: true };
+        }
+        setImageToStamp(response.uri)
+        
+        /*console.log('avatar');
+        console.log(temp)*/
+
       }
     });
-  }
-
-  const sign = () => {
   }
 
   const colorEnable = (isEnabled) => {
@@ -93,11 +94,33 @@ const App: () => React$Node = () => {
 
   const colorSwitch = { false: "#767577", true: "#81b0ff" };
 
+  async function signCades() {
+    const response = await ToastModule.signCades(email, password);
+    console.log('SignCade -> ' + response);
+  }
+
+  async function signPades() {
+    console.log('pdf ' + pdfToSign);
+    console.log('image ' + imageToStamp);
+    const response = await ToastModule.signPades(pdfToSign, email, password,
+      isLtv, razon, ubicacion, isStamp,
+      isFirmaVisible, imageToStamp, usuario, clave);
+    console.log('SignCade -> ' + response);
+  }
+
   return (
     <View style={styles.container}>
       <View>
         <Text style={styles.header}>Firma Ya</Text>
         <ScrollView>
+          <View style={styles.inputContainer}>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={signCades}
+            >
+              <Text style={styles.saveButtonText}>Sign Cades</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.inputContainer}>
             <TouchableOpacity
               style={styles.saveButton}
@@ -108,16 +131,18 @@ const App: () => React$Node = () => {
           </View>
           <View style={styles.inputContainer}>
             <TextInput
+              value={email}
+              onChange={onChangeEmail}
               style={styles.textInput}
               placeholder="Usuario"
-              maxLength={20}
             />
           </View>
           <View style={styles.inputContainer}>
             <TextInput
+              value={password}
+              onChange={onChangePassword}
               style={styles.textInput}
               placeholder="Contraseña"
-              maxLength={20}
             />
           </View>
 
@@ -133,16 +158,18 @@ const App: () => React$Node = () => {
           </View>
           <View style={styles.inputContainer}>
             <TextInput
+              value={razon}
+              onChange={onChangeRazon}
               style={styles.textInput}
               placeholder="Razón"
-              maxLength={20}
             />
           </View>
           <View style={styles.inputContainer}>
             <TextInput
+              value={ubicacion}
+              onChange={onChangeUbicacion}
               style={styles.textInput}
               placeholder="Ubicación"
-              maxLength={20}
             />
           </View>
 
@@ -177,26 +204,31 @@ const App: () => React$Node = () => {
           </View>
           <View style={styles.inputContainer}>
             <TextInput
+              value={usuario}
+              onChange={onChangeUsuario}
               style={styles.textInput}
               placeholder="Usuario"
-              maxLength={20}
             />
           </View>
           <View style={styles.inputContainer}>
             <TextInput
+              value={clave}
+              onChange={onChangeClave}
               style={styles.textInput}
               placeholder="Clave"
-              maxLength={20}
             />
           </View>
 
           <View style={styles.inputContainer}>
             <TouchableOpacity
               style={styles.saveButton}
-              onPress={sign}
+              onPress={signPades}
             >
               <Text style={styles.saveButtonText}>Firmar</Text>
             </TouchableOpacity>
+          </View>
+
+          <View style={styles.inputContainer}>
           </View>
         </ScrollView>
 
