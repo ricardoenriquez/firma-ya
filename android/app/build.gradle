@@ -128,6 +128,23 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    packagingOptions {
+        //exclude 'org/glassfish/jersey/client/internal/localization.properties'
+        exclude 'com/itextpdf/io/font/cmap_info.txt'
+        exclude 'com/itextpdf/io/font/cmap/MSungStd-Light.properties'
+        exclude 'com/itextpdf/io/font/cmap/STSong-Light.properties'
+        exclude 'com/itextpdf/io/font/cmap/HYSMyeongJoStd-Medium.properties'
+        exclude 'com/itextpdf/io/font/cmap/MSung-Light.properties'
+        exclude 'com/itextpdf/io/font/cmap/STSongStd-Light.properties'
+        exclude 'com/itextpdf/io/font/cmap/HYGoThic-Medium.properties'
+        exclude 'com/itextpdf/io/font/cmap/HYSMyeongJo-Medium.properties'
+        exclude 'com/itextpdf/io/font/cmap/KozMinPro-Regular.properties'
+        exclude 'com/itextpdf/io/font/cmap/MHei-Medium.properties'
+        exclude 'com/itextpdf/io/font/cmap/HeiseiMin-W3.properties'
+        exclude 'com/itextpdf/io/font/cmap/HeiseiKakuGo-W5.properties'
+        exclude 'com/itextpdf/io/font/cmap/cjk_registry.properties'
+    }
+
     defaultConfig {
         applicationId "com.firmaya"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -185,9 +202,18 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
-    implementation project(':Signature-release')
-
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+    implementation project(':Signature-release')
+    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation group: 'com.itextpdf', name: 'itext7-core', version: '7.0.4'
+    implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.62'
+    implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.62'
+    /*implementation (group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.25.1'){
+        exclude group: 'javax.inject', module: 'javax.inject'
+    }
+    implementation (group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version: '2.25.1'){
+        exclude group: 'javax.inject', module: 'javax.inject'
+    }*/
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'
