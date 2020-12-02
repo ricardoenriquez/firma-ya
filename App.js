@@ -80,7 +80,7 @@ const App: () => React$Node = () => {
           source = { uri: response.uri.replace('file://', ''), isStatic: true };
         }
         setImageToStamp(response.uri)
-        
+        console.log(response.uri);
         /*console.log('avatar');
         console.log(temp)*/
 
@@ -105,7 +105,7 @@ const App: () => React$Node = () => {
     const response = await ToastModule.signPades(pdfToSign, email, password,
       isLtv, razon, ubicacion, isStamp,
       isFirmaVisible, imageToStamp, usuario, clave);
-    console.log('SignCade -> ' + response);
+    console.log('SignPade -> ' + response);
   }
 
   return (

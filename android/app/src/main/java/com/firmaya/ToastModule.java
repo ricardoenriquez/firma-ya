@@ -1,6 +1,7 @@
 package com.firmaya;
 
 import android.net.Uri;
+import android.os.Environment;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -19,6 +20,8 @@ import com.gse.signature.dto.SignatureResult;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -89,24 +92,58 @@ public class ToastModule extends ReactContextBaseJavaModule {
             InputStream pdfStream =   getReactApplicationContext().getContentResolver().openInputStream(pdf);
             byte[] inputPdf = getBytes(pdfStream);
 
-            InputStream imageStream =   getReactApplicationContext().getContentResolver().openInputStream(pdf);
+            InputStream imageStream =   getReactApplicationContext().getContentResolver().openInputStream(image);
             byte[] inputImage = getBytes(imageStream);
 
             //new File(pdf.getPath());
 
             Signature signature = new Signature();
             ImageSign imageSign = new ImageSign(100, 100, 100, 100, inputImage, 1);
-            SignatureResult result = signature.Pades(inputPdf, user, password, usuario, clave,
+            SignatureResult result = signature.Pades(inputPdf, user, password, "gse", "123456789",
                     isLtv, isStamp, usuario,clave , "https://tsa.gse.com.co",isFirmaVisible, imageSign, razon,
                     ubicacion);
 
+            if(result.isSuccess()){
+                createFile(result.getFirmado());
+                /*
+                FileOutputStream fileOutputStream = new FileOutputStream(
+                        new File(getReactApplicationContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),"FirmadoQQQQQQQQ.pdf"));
+                        fileOutputStream.write(result.getFirmado());
+                        fileOutputStream.flush();
+                        fileOutputStream.close();*/
+            }
+
             //promise.resolve(result);
-            String res = "uri1 "+inputPdf+" -- uri2 "+inputImage;
-            promise.resolve(result);
+            String res = "mensaje "+result.getMessage()+" respeusta "+result.isSuccess()+" -- image "+imageSign;
+            promise.resolve(res);
         } catch (Exception e) {
             promise.reject(E_LAYOUT_ERROR, e);
         }
     }
+    private void createFile(byte[] fileData) {
+        try {
+            //Create directory..
+            File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS );
+            File dir = new File(root + File.separator);
+            if (!dir.exists()) dir.mkdir();
+
+            //Create file..
+            File file = new File(root + File.separator + "FIRMADO.pdf");
+            file.createNewFile();
+
+            FileOutputStream out = new FileOutputStream(file);
+            out.write(fileData);
+            out.close();
+
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public byte[] getBytes(InputStream inputStream) throws IOException {
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
         int bufferSize = 1024;
